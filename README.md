@@ -1,1 +1,1 @@
-# stream-craft
+# stream-craft-server
