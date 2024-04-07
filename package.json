@@ -1,0 +1,26 @@
+{
+  "name": "stream-craft-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pranjal0207/stream-craft-server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pranjal0207/stream-craft-server/issues"
+  },
+  "homepage": "https://github.com/pranjal0207/stream-craft-server#readme",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.550.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.3.0"
+  }
+}
