@@ -8,9 +8,9 @@ import {
 import { handleUploadMiddleware } from "../services/s3.js";
 const router = express.Router();
 
-router.get("/:video_id", getVideoByID);
+router.get("/:videoId", getVideoByID);
 router.post("/newVideo", handleUploadMiddleware, createNewVideo);
 router.put("/:videoId", updateTitleDescription);
-router.delete("/:video_id", deleteVideo);
+router.delete("/:videoId", deleteVideo);
 
 export default router;
