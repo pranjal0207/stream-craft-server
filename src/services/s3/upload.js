@@ -10,7 +10,7 @@ AWS.config.update({
   region: process.env.AWS_REGION,
 });
 
-export const S3 = new AWS.S3();
+const S3 = new AWS.S3();
 
 const isAllowedVideotype = (mime) => {
   const allowedVideoExtensions = [
@@ -72,10 +72,11 @@ const generateUploadMiddleware = (fileId) => {
         const finalPath = `${path}/${fileName}`;
         file.filename = fileName;
         req.body.videoId = fileId;
-        req.body.videoPath = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${path}`;
+        // req.body.videoPath = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${path}`;
         if (type == "video") req.body.videoExt = ext;
         else req.body.thumbnailExt = ext;
-        cb(null, finalPath);
+        const key = `${path}/${type}`;
+        cb(null, key);
       },
     }),
   });

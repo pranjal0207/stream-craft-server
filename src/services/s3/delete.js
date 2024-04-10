@@ -7,7 +7,7 @@ AWS.config.update({
   region: process.env.AWS_REGION,
 });
 
-export const S3 = new AWS.S3();
+const S3 = new AWS.S3();
 
 export const deleteFolderFromS3 = (folderPath) => {
   const params = {

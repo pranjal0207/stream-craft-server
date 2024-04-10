@@ -16,14 +16,6 @@ const VideoSchema = new mongoose.Schema({
     required: true,
     max: 200,
   },
-  video: {
-    type: String,
-    required: true,
-  },
-  thumbnail: {
-    type: String,
-    required: true,
-  },
   uploadDate: {
     type: Date,
     required: true,
