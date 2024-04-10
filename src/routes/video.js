@@ -5,7 +5,7 @@ import {
   updateTitleDescription,
   deleteVideo,
 } from "../controllers/video.js";
-import { handleUploadMiddleware } from "../services/s3.js";
+import { handleUploadMiddleware } from "../services/s3/upload.js";
 const router = express.Router();
 
 router.get("/:videoId", getVideoByID);

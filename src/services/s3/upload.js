@@ -2,7 +2,7 @@ import AWS from "aws-sdk";
 import multer from "multer";
 import multerS3 from "multer-s3";
 import { v4 as uuidv4 } from "uuid";
-import { AWS_BUCKET_NAME } from "../../config/aws-s3-config.js";
+import { AWS_BUCKET_NAME } from "../../../config/aws-s3-config.js";
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -11,6 +11,7 @@ AWS.config.update({
 });
 
 export const S3 = new AWS.S3();
+
 const isAllowedVideotype = (mime) => {
   const allowedVideoExtensions = [
     "video/mp4",
@@ -55,6 +56,7 @@ const isVideo = (mime) => {
   else if (isAllowedThumbnailType(mime)) return false;
   throw new Error("Neither a video nor a thumbnail");
 };
+
 const generateUploadMiddleware = (fileId) => {
   return multer({
     fileFilter,
@@ -78,6 +80,7 @@ const generateUploadMiddleware = (fileId) => {
     }),
   });
 };
+
 export const handleUploadMiddleware = (req, res, next) => {
   try {
     const fileId = uuidv4();
