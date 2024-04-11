@@ -11,13 +11,6 @@ dotenv.config();
 var port = process.env.PORT || 4001;
 var MONGO_URI = process.env.MONGO_URI;
 
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    //Success
-  })
-  .catch((err) => console.log(err));
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -27,6 +20,18 @@ app.use("/api/user", user);
 app.use("/api/video", video);
 app.use("/api/login", login);
 
-app.listen(port, () => {
-  console.log(`Server started on port ${port}`);
-});
+mongoose
+  .connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then((data) => {
+    app.listen(port, () => {
+      console.log(`Server started on port ${port}`);
+    });
+  })
+  .catch((err) => console.log(err));
+
+
+
+
