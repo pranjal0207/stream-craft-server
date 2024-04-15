@@ -1,3 +1,4 @@
+import User from "../models/User.js";
 import Video from "../models/Video.js";
 import { deleteFolderFromS3 } from "../services/s3/delete.js";
 import { getSignedUrl } from "../services/s3/get.js";
@@ -121,6 +122,88 @@ export const getVideoWithQuery = async (req, res) => {
 
     res.status(200).json({ videos: videos });
   } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
+export const likeVideo = async (req, res) => {
+  try {
+    const videoId = req.params.videoId;
+    const userId = req.body.id;
+
+    const video = await Video.findOne({ video_id: videoId });
+    if (!video) {
+      return res.status(404).json({ message: "Video not found" });
+    }
+
+    const user = await User.findOne({ user_id: userId });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.likedVideos.includes(videoId)) {
+      return res
+        .status(208)
+        .json({ message: "Video already liked", video: video });
+    }
+
+    const dislikedIndex = user.dislikedVideos.indexOf(videoId);
+    if (dislikedIndex !== -1) {
+      user.dislikedVideos.splice(dislikedIndex, 1);
+      video.dislikes -= 1;
+    }
+
+    video.likes += 1;
+
+    user.likedVideos.push(videoId);
+
+    await video.save();
+    await user.save();
+
+    res.status(200).json({ message: "Video liked successfully", video: video });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error });
+  }
+};
+
+export const dislikeVideo = async (req, res) => {
+  try {
+    const videoId = req.params.videoId;
+    const userId = req.body.id;
+    const video = await Video.findOne({ video_id: videoId });
+    if (!video) {
+      return res.status(404).json({ message: "Video not found" });
+    }
+
+    const user = await User.findOne({ user_id: userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.dislikedVideos.includes(videoId)) {
+      return res
+        .status(208)
+        .json({ message: "Video already disliked", video: video });
+    }
+
+    const likedIndex = user.likedVideos.indexOf(videoId);
+    if (likedIndex !== -1) {
+      user.likedVideos.splice(likedIndex, 1);
+      video.likes -= 1;
+    }
+    video.dislikes += 1;
+
+    user.dislikedVideos.push(videoId);
+
+    await video.save();
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: "Video disliked successfully", video: video });
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ error: error });
   }
 };
