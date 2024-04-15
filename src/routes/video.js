@@ -6,6 +6,7 @@ import {
   updateTitleDescription,
   deleteVideo,
   getTopVideos,
+  getVideoWithQuery,
 } from "../controllers/video.js";
 import { handleUploadMiddleware } from "../services/s3/upload.js";
 import { verifyToken } from "../middleware/authentication.js";
@@ -21,5 +22,5 @@ router.delete("/:videoId", verifyToken, deleteVideo);
 
 // Interaction routes
 router.get("/getTopVideos", verifyToken, getTopVideos);
-
+router.get("/", verifyToken, getVideoWithQuery);
 export default router;

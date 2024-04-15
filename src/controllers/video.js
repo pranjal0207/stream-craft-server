@@ -84,3 +84,27 @@ export const getTopVideos = async (req, res) => {
   const topNVideos = await Video.aggregate([{ $sample: { size: n } }]);
   res.status(200).json({ top_videos: topNVideos });
 };
+
+export const getVideoWithQuery = async (req, res) => {
+  try {
+    const searchQuery = req.query.search;
+
+    if (!searchQuery) {
+      return res.status(400).json({ message: "Please provide a search query" });
+    }
+
+    const videos = await Video.find({
+      title: { $regex: searchQuery, $options: "i" },
+    });
+
+    if (!videos || videos.length === 0) {
+      return res
+        .status(404)
+        .json({ message: `No videos found with '${searchQuery}' in title` });
+    }
+
+    res.status(200).json({ videos: videos });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
