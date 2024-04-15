@@ -80,9 +80,25 @@ export const deleteVideo = async (req, res) => {
 };
 
 export const getTopVideos = async (req, res) => {
-  const n = parseInt(req.query.n);
-  const topNVideos = await Video.aggregate([{ $sample: { size: n } }]);
-  res.status(200).json({ top_videos: topNVideos });
+  try {
+    const n = parseInt(req.query.n);
+
+    if (isNaN(n) || n <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Please provide a valid positive integer for 'n'" });
+    }
+
+    const topNVideos = await Video.aggregate([{ $sample: { size: n } }]);
+
+    if (!topNVideos || topNVideos.length === 0) {
+      return res.status(404).json({ message: "No top videos found" });
+    }
+
+    res.status(200).json({ top_videos: topNVideos });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
 };
 
 export const getVideoWithQuery = async (req, res) => {
