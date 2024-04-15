@@ -228,6 +228,7 @@ export const addComment = async (req, res) => {
       text: text,
       userId: userId,
       videoId: videoId,
+      postDate: new Date(),
     });
     await newComment.save();
     res
