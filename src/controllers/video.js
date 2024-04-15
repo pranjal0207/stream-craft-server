@@ -80,5 +80,7 @@ export const deleteVideo = async (req, res) => {
 };
 
 export const getTopVideos = async (req, res) => {
-  res.status(200).json({ top_videos: "vids" });
+  const n = parseInt(req.query.n);
+  const topNVideos = await Video.aggregate([{ $sample: { size: n } }]);
+  res.status(200).json({ top_videos: topNVideos });
 };

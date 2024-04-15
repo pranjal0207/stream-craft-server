@@ -20,6 +20,6 @@ router.put("/:videoId", verifyToken, updateTitleDescription);
 router.delete("/:videoId", verifyToken, deleteVideo);
 
 // Interaction routes
-router.get("/getTopVideos?n=6", verifyToken, getTopVideos);
+router.get("/getTopVideos", verifyToken, getTopVideos);
 
 export default router;
