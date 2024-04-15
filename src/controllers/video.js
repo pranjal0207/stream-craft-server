@@ -1,6 +1,7 @@
 import Video from "../models/Video.js";
 import { deleteFolderFromS3 } from "../services/s3/delete.js";
 import { getSignedUrl } from "../services/s3/get.js";
+
 export const getVideoByID = async (req, res) => {
   try {
     const videoId = req.params.videoId;
@@ -8,7 +9,7 @@ export const getVideoByID = async (req, res) => {
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
-    const videoPath = `user_id_here_please_please/${videoId}/video`;
+    const videoPath = `${req.body.id}/${videoId}/video`;
     const videoUrl = await getSignedUrl(videoPath);
     res.status(200).json({ message: video, videoUrl: videoUrl });
   } catch (error) {
@@ -23,7 +24,7 @@ export const getThumbnailById = async (req, res) => {
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
-    const videoPath = `user_id_here_please_please/${videoId}/thumbnail`;
+    const videoPath = `${req.body.id}/${videoId}/thumbnail`;
     const thumbnailUrl = await getSignedUrl(videoPath);
     res.status(200).json({ message: video, thumbnailUrl: thumbnailUrl });
   } catch (error) {
@@ -41,7 +42,7 @@ export const createNewVideo = async (req, res) => {
       // video: `${req.body.videoPath}/video.${req.body.videoExt}`,
       // thumbnail: `${req.body.videoPath}/thumbnail.${req.body.thumbnailExt}`,
       uploadDate: new Date(),
-      uploaderId: "user123", // TODO: Add user token here
+      uploaderId: req.body.id,
     });
     const saveVideo = await newVideo.save();
     res.status(200).json({ message: saveVideo });
@@ -70,10 +71,14 @@ export const deleteVideo = async (req, res) => {
   try {
     const videoId = req.params.videoId;
     const mongoStatus = await Video.deleteOne({ video_id: videoId });
-    const videoFolder = `user_id_here_please_please/${videoId}`;
+    const videoFolder = `${req.body.id}/${videoId}`;
     const s3Status = await deleteFolderFromS3(videoFolder);
     res.status(200).json({ s3Status: s3Status, mongoStatus: mongoStatus });
   } catch (error) {
     res.status(500).json({ error: error });
   }
+};
+
+export const getTopVideos = async (req, res) => {
+  res.status(200).json({ top_videos: "vids" });
 };

@@ -57,7 +57,7 @@ const isVideo = (mime) => {
   throw new Error("Neither a video nor a thumbnail");
 };
 
-const generateUploadMiddleware = (fileId) => {
+const generateUploadMiddleware = (userId, fileId) => {
   return multer({
     fileFilter,
     storage: multerS3({
@@ -67,11 +67,12 @@ const generateUploadMiddleware = (fileId) => {
       key: function (req, file, cb) {
         const ext = file.originalname.split(".").pop();
         const type = isVideo(file.mimetype) ? "video" : "thumbnail";
-        const path = `user_id_here_please_please/${fileId}`;
+        const path = `${userId}/${fileId}`;
         const fileName = `${type}.${ext}`;
         const finalPath = `${path}/${fileName}`;
         file.filename = fileName;
         req.body.videoId = fileId;
+        req.body.id = userId;
         // req.body.videoPath = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/${path}`;
         if (type == "video") req.body.videoExt = ext;
         else req.body.thumbnailExt = ext;
@@ -86,7 +87,8 @@ export const handleUploadMiddleware = (req, res, next) => {
   try {
     const fileId = uuidv4();
     req.body.videoId = fileId;
-    const uploadMiddleware = generateUploadMiddleware(fileId);
+    const userId = req.body.id;
+    const uploadMiddleware = generateUploadMiddleware(userId, fileId);
     uploadMiddleware.array("files", 2)(req, res, next);
   } catch (error) {
     res.status(500).json({ message: error });
