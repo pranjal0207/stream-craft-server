@@ -257,3 +257,22 @@ export const getComments = async (req, res) => {
     res.status(500).json({ error: error });
   }
 };
+
+export const moderateVideo = async (req, res) => {
+  try {
+    const videoId = req.params.videoId;
+    const video = await Video.findOne({ video_id: videoId });
+    if (!video) {
+      return res.status(404).json({ message: "Video not found" });
+    }
+
+    const moderatedFlag = video.moderated;
+    video.moderated = !moderatedFlag;
+    const saveVideo = await video.save();
+    res.status(200).json({
+      message: video,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
