@@ -1,5 +1,7 @@
+import { v4 as uuidv4 } from "uuid";
 import User from "../models/User.js";
 import Video from "../models/Video.js";
+import Comment from "../models/Comment.js";
 import { deleteFolderFromS3 } from "../services/s3/delete.js";
 import { getSignedUrl } from "../services/s3/get.js";
 
@@ -125,6 +127,7 @@ export const getVideoWithQuery = async (req, res) => {
     res.status(500).json({ error: error });
   }
 };
+
 export const likeVideo = async (req, res) => {
   try {
     const videoId = req.params.videoId;
@@ -202,6 +205,52 @@ export const dislikeVideo = async (req, res) => {
     res
       .status(200)
       .json({ message: "Video disliked successfully", video: video });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error });
+  }
+};
+
+export const addComment = async (req, res) => {
+  try {
+    const text = req.body.text;
+    const videoId = req.params.videoId;
+    const userId = req.body.id;
+    const commentId = uuidv4();
+
+    const video = await Video.findOne({ video_id: videoId });
+    if (!video) {
+      return res.status(404).json({ message: "Video not found" });
+    }
+
+    const newComment = new Comment({
+      commentId: commentId,
+      text: text,
+      userId: userId,
+      videoId: videoId,
+    });
+    await newComment.save();
+    res
+      .status(200)
+      .json({ message: "Comment added successfully", comment: newComment });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error });
+  }
+};
+
+export const getComments = async (req, res) => {
+  try {
+    const videoId = req.params.videoId;
+
+    const video = await Video.findOne({ video_id: videoId });
+    if (!video) {
+      return res.status(404).json({ message: "Video not found" });
+    }
+
+    const comments = await Comment.find({ videoId: videoId });
+
+    res.status(200).json({ comments: comments });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error });

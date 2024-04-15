@@ -9,6 +9,8 @@ import {
   getVideoWithQuery,
   likeVideo,
   dislikeVideo,
+  addComment,
+  getComments,
 } from "../controllers/video.js";
 import { handleUploadMiddleware } from "../services/s3/upload.js";
 import { verifyToken } from "../middleware/authentication.js";
@@ -27,5 +29,7 @@ router.get("/getTopVideos", verifyToken, getTopVideos);
 router.get("/", verifyToken, getVideoWithQuery);
 router.put("/:videoId/like", verifyToken, likeVideo);
 router.put("/:videoId/dislike", verifyToken, dislikeVideo);
+router.post("/:videoId/comment", verifyToken, addComment);
+router.get("/:videoId/comment", verifyToken, getComments);
 
 export default router;
