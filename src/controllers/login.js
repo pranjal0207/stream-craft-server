@@ -22,7 +22,10 @@ export const login = async (req, res) => {
         const userObject = user.toObject();
         delete userObject.password;
 
-        res.status(200).json ({ token, userObject});
+        res.status(200).json ({ 
+            "token" : token, 
+            "user" : userObject
+        });
     } catch (error) {
         res.status(500).json({"message" : error});
     }
