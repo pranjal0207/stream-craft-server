@@ -3,6 +3,10 @@ import multer from "multer";
 import multerS3 from "multer-s3";
 import { v4 as uuidv4 } from "uuid";
 import { AWS_BUCKET_NAME } from "../../../config/aws-s3-config.js";
+import dotenv from "dotenv";
+
+dotenv.config();
+
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
