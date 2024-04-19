@@ -1,12 +1,7 @@
 import mongoose from "mongoose";
 
-const UserSchema = new mongoose.Schema({
+const ConsumerUserSchema = new mongoose.Schema({
     user_id : {
-        type: String,
-        required: true,
-        unique: true
-    },
-    username : {
         type: String,
         required: true,
         unique: true
@@ -49,8 +44,14 @@ const UserSchema = new mongoose.Schema({
     viewHistory : {
         type: Array,
         default: []
+    },
+    type : {
+        type: String,
+        enum: ['consumer', 'uploader'],
+        required: true,
+        default : "consumer"
     }
 });
 
-const User = mongoose.model("User", UserSchema);
-export default User;
+const ConsumerUser = mongoose.model("ConsumerUser", ConsumerUserSchema);
+export default ConsumerUser;

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import User from "../models/User.js";
+import ConsumerUser from "../models/ConsumerUser.js";
 import Video from "../models/Video.js";
 import Comment from "../models/Comment.js";
 import { deleteFolderFromS3 } from "../services/s3/delete.js";
@@ -138,10 +138,10 @@ export const likeVideo = async (req, res) => {
       return res.status(404).json({ message: "Video not found" });
     }
 
-    const user = await User.findOne({ user_id: userId });
+    const user = await ConsumerUser.findOne({ user_id: userId });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "ConsumerUser not found" });
     }
 
     if (user.likedVideos.includes(videoId)) {
@@ -179,9 +179,9 @@ export const dislikeVideo = async (req, res) => {
       return res.status(404).json({ message: "Video not found" });
     }
 
-    const user = await User.findOne({ user_id: userId });
+    const user = await ConsumerUser.findOne({ user_id: userId });
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "ConsumerUser not found" });
     }
 
     if (user.dislikedVideos.includes(videoId)) {
