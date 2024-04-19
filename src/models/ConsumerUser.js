@@ -44,6 +44,12 @@ const ConsumerUserSchema = new mongoose.Schema({
     viewHistory : {
         type: Array,
         default: []
+    },
+    type : {
+        type: String,
+        enum: ['consumer', 'uploader'],
+        required: true,
+        default : "consumer"
     }
 });
 

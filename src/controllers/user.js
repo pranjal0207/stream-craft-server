@@ -1,25 +1,34 @@
 import ConsumerUser from "../models/ConsumerUser.js";
+import UploaderUser from "../models/UploaderUser.js";
 import bcrypt from "bcrypt";
 
 export const getUserById = async (req, res) => {
     try {
-        const id = req.params.user_id;
-        const user = await ConsumerUser.findOne({user_id : id});
+        const {type, user_id}= req.params;
+        const UserClass = type === "uploader" ? UploaderUser : ConsumerUser;
 
-        res.status(200).json({"message": user});
+        const user = await UserClass.findOne({user_id : user_id});
+        
+        res.status(200).json({user});
     } catch (error) {
         res.status(500).json({"message": error});
     }
 }
 
 export const updateEmailPassword = async (req, res) => {
-    const id = req.params.user_id;
-    const { email, password } = req.body;   
-
-    const salt = await bcrypt.genSalt();
-    const passwordHash = await bcrypt.hash(password, salt);
-
-    const updatedUser = await ConsumerUser.findOneAndUpdate({user_id : id}, {email: email, password: passwordHash}, { new: true }); 
-
-    res.status(200).json({"message" : updatedUser});
+    try {
+        const {type, user_id}= req.params;
+        const { email, password } = req.body;   
+    
+        const UserClass = type === "uploader" ? UploaderUser : ConsumerUser;
+    
+        const salt = await bcrypt.genSalt();
+        const passwordHash = await bcrypt.hash(password, salt);
+    
+        const updatedUser = await UserClass.findOneAndUpdate({user_id : user_id}, {email: email, password: passwordHash}, { new: true }); 
+    
+        res.status(200).json({"user" : updatedUser});
+    } catch (error) {
+        res.status(500).json({"message": error});
+    }
 }

@@ -4,7 +4,7 @@ import { verifyToken } from "../middleware/authentication.js";
 
 const router = express.Router();
 
-router.get("/:user_id", verifyToken, getUserById);
-router.put("/:user_id", verifyToken, updateEmailPassword);
+router.get("/:type/:user_id", verifyToken, getUserById);
+router.put("/:type/:user_id", verifyToken, updateEmailPassword);
 
 export default router;
