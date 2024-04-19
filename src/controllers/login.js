@@ -1,15 +1,20 @@
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from "bcrypt";
-import User from "../models/User.js";
+import ConsumerUser from "../models/ConsumerUser.js";
+import UploaderUser from '../models/UploaderUser.js';
 import jwt from "jsonwebtoken";
 
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        const { type } = req.params;
 
-        const user = await User.findOne({email: email});
+        const UserClass = type === "uploader" ? UploaderUser : ConsumerUser;
+
+        const user = await UserClass.findOne({email: email})
+        
         if (!(user)) {
-            return res.status(400).json({ "message": "User does not exist" });
+            return res.status(400).json({ "message": "ConsumerUser does not exist" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -17,14 +22,15 @@ export const login = async (req, res) => {
             return res.status(400).json({ "message": "Invalid credentials" });
         }
 
-        const token = jwt.sign({id: user.user_id}, process.env.JWT_SECRET);
+        const token = generateToken(user.user_id);
 
         const userObject = user.toObject();
         delete userObject.password;
 
         res.status(200).json ({ 
             "token" : token, 
-            "user" : userObject
+            "user" : userObject,
+            "type" : type
         });
     } catch (error) {
         res.status(500).json({"message" : error});
@@ -33,36 +39,46 @@ export const login = async (req, res) => {
 
 export const createNewUser = async (req, res) => {
     try {
-        const {
-            username,
-            firstName,
-            lastName,
-            email,
-            password
-        } = req.body;
+        const userData = req.body;
+        const { type } = req.params;
 
-        const newUserId = uuidv4();
+        const isUploader = type === "uploader";
+        const UserClass = isUploader ? UploaderUser : ConsumerUser;
 
-        const salt = await bcrypt.genSalt();
-        const passwordHash = await bcrypt.hash(password, salt);
+        const savedUser = await createUser(userData, UserClass, isUploader);
+        const token = generateToken(savedUser.user_id);
 
-        const newUser = new User({
-            user_id : newUserId,
-            username : username,
-            email: email,
-            firstName: firstName,
-            lastName: lastName,
-            password: passwordHash,
-            subscriptions: [],
-            likedVideos : [],
-            dislikedVideos : [],
-            viewHistory : []
+        const userObject = savedUser.toObject();
+        delete userObject.password;
+
+        res.status(200).json({
+            user: userObject,
+            type,
+            token
         });
-
-        const saveUser = await newUser.save();
-
-        res.status(200).json({"message" : saveUser});
     } catch (error) {
-        res.status(500).json({"message" : error});
+        res.status(500).json({ "message": error});
     }
-}
+};
+
+const createUser = async (userData, UserClass, isUploader = false) => {
+    const userId = uuidv4();
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(userData.password, salt);
+    const userObj = {
+        user_id: userId,
+        email: userData.email.toLowerCase(),
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        password: passwordHash
+    };
+
+    if (isUploader) {
+        userObj.description = userData.description;
+    }
+
+    const newUser = new UserClass(userObj);
+    return newUser.save();
+};
+
+const generateToken = (userId) => jwt.sign({ id: userId }, process.env.JWT_SECRET);

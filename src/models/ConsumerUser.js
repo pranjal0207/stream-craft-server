@@ -1,12 +1,7 @@
 import mongoose from "mongoose";
 
-const UserSchema = new mongoose.Schema({
+const ConsumerUserSchema = new mongoose.Schema({
     user_id : {
-        type: String,
-        required: true,
-        unique: true
-    },
-    username : {
         type: String,
         required: true,
         unique: true
@@ -52,5 +47,5 @@ const UserSchema = new mongoose.Schema({
     }
 });
 
-const User = mongoose.model("User", UserSchema);
-export default User;
+const ConsumerUser = mongoose.model("ConsumerUser", ConsumerUserSchema);
+export default ConsumerUser;
