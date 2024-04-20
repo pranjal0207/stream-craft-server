@@ -55,7 +55,7 @@ const UploaderUserSchema = new mongoose.Schema({
     },
     type : {
         type: String,
-        enum: ['consumer', 'uploader'],
+        enum: ['consumer', 'uploader', 'moderator'],
         required: true,
         default : "uploader"
     }
