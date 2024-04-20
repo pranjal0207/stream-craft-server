@@ -22,19 +22,18 @@ import {
 const router = express.Router();
 
 // Video routes
-router.get("/getVideo/:videoId", verifyTokenWithContinue, getVideoByID);
-router.get("/getThumbnail/:videoId", getThumbnailById);
-router.post("/newVideo", verifyToken, handleUploadMiddleware, createNewVideo);
-router.put("/:videoId", verifyToken, updateTitleDescription);
-router.delete("/:videoId", verifyToken, deleteVideo);
+router.get("/getVideo/:videoId", verifyTokenWithContinue, getVideoByID); // Accessed by all, otp. token for video URL
+router.get("/getThumbnail/:videoId", getThumbnailById); // Accessed by all
+router.post("/newVideo", verifyToken, handleUploadMiddleware, createNewVideo); // Accessed by uploader
+router.put("/:videoId", verifyToken, updateTitleDescription); // Accessed by uploader
+router.delete("/:videoId", verifyToken, deleteVideo); // Accessed by uploader
 
 // Interaction routes
-router.get("/getTopVideos", getTopVideos);
-router.get("/", getVideoWithQuery);
-router.put("/:videoId/like", verifyToken, likeVideo);
-router.put("/:videoId/dislike", verifyToken, dislikeVideo);
-router.post("/:videoId/comment", verifyToken, addComment);
-router.get("/:videoId/comment", verifyToken, getComments);
-router.put("/:videoId/moderate", verifyToken, moderateVideo);
-
+router.get("/getTopVideos", getTopVideos); // Accessed by all
+router.get("/", getVideoWithQuery); // Accessed by all
+router.put("/:videoId/like", verifyToken, likeVideo); // Accessed by consumer
+router.put("/:videoId/dislike", verifyToken, dislikeVideo); // Accessed by consumer
+router.post("/:videoId/comment", verifyToken, addComment); // Accessed by consumer
+router.get("/:videoId/comment", verifyToken, getComments); // Accessed by authorized user
+router.put("/:videoId/moderate", verifyToken, moderateVideo); // Accessed by moderator
 export default router;

@@ -33,10 +33,6 @@ const ModeratorUserSchema = new mongoose.Schema({
     type: Array,
     default: [],
   },
-  reportedVideos: {
-    type: Array,
-    default: [],
-  },
 });
 
 const ModeratorUser = mongoose.model("ModeratorUser", ModeratorUserSchema);
