@@ -37,7 +37,7 @@ const ModeratorUserSchema = new mongoose.Schema({
       type: String,
       enum: ['consumer', 'uploader', 'moderator'],
       required: true,
-      default : "consumer"
+      default : "moderator"
   }
 });
 
