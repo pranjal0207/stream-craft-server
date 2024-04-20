@@ -14,8 +14,8 @@ export const verifyToken = async (req, res, next) => {
 
     const verified = jwt.verify(token, process.env.JWT_SECRET);
     const decoded = jwt.decode(token);
-
     req.body.id = decoded.id;
+    req.body.type = decoded.type;
     next();
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -37,6 +37,7 @@ export const verifyTokenWithContinue = async (req, res, next) => {
     const verified = jwt.verify(token, process.env.JWT_SECRET);
     const decoded = jwt.decode(token);
     req.body.id = decoded.id;
+    req.body.type = decoded.type;
     next();
   } catch (err) {
     req.body.id = null;

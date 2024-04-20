@@ -35,7 +35,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const token = generateToken(user.user_id);
+    const token = generateToken(user.user_id, type);
 
     const userObject = user.toObject();
     delete userObject.password;
@@ -58,7 +58,7 @@ export const createNewUser = async (req, res) => {
     const UserClass = getUserClass(type);
 
     const savedUser = await createUser(userData, UserClass, isUploader);
-    const token = generateToken(savedUser.user_id);
+    const token = generateToken(savedUser.user_id, type);
 
     const userObject = savedUser.toObject();
     delete userObject.password;
@@ -93,5 +93,5 @@ const createUser = async (userData, UserClass, isUploader = false) => {
   return newUser.save();
 };
 
-const generateToken = (userId) =>
-  jwt.sign({ id: userId }, process.env.JWT_SECRET);
+const generateToken = (userId, type) =>
+  jwt.sign({ id: userId, type: type }, process.env.JWT_SECRET);
