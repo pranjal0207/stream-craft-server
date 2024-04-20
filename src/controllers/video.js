@@ -14,7 +14,7 @@ export const getVideoByID = async (req, res) => {
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
-    const videoPath = `${req.body.id}/${videoId}/video`;
+    const videoPath = `${video.uploaderId}/${videoId}/video`;
     const videoUrl = await getSignedUrl(videoPath);
     res.status(200).json({ message: video, videoUrl: videoUrl });
   } catch (error) {
@@ -29,7 +29,7 @@ export const getThumbnailById = async (req, res) => {
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
-    const videoPath = `${req.body.id}/${videoId}/thumbnail`;
+    const videoPath = `${video.uploaderId}/${videoId}/thumbnail`;
     const thumbnailUrl = await getSignedUrl(videoPath);
     res.status(200).json({ message: video, thumbnailUrl: thumbnailUrl });
   } catch (error) {
