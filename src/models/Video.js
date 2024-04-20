@@ -48,6 +48,10 @@ const VideoSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  tagId: {
+    type: Number,
+    default: -1,
+  },
 });
 
 const Video = mongoose.model("Video", VideoSchema);

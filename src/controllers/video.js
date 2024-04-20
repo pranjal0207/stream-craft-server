@@ -5,6 +5,7 @@ import Video from "../models/Video.js";
 import Comment from "../models/Comment.js";
 import { deleteFolderFromS3 } from "../services/s3/delete.js";
 import { getSignedUrl } from "../services/s3/get.js";
+import Tag from "../models/Tag.js";
 
 export const getVideoByID = async (req, res) => {
   try {
@@ -46,12 +47,20 @@ export const createNewVideo = async (req, res) => {
     user.uploadedVideos.push(req.body.videoId);
     await user.save();
 
+    // Optional Parameter
+    const tagName = req.body.tagName;
+    let tagId = null;
+    if (tagName) {
+      const tag = await Tag.findOne({ tagName: tagName.toLowerCase() });
+      tagId = tag.tagId;
+    }
     const newVideo = new Video({
       video_id: req.body.videoId,
       title: req.body.title,
       description: req.body.description,
       uploadDate: new Date(),
       uploaderId: userId,
+      tagId: tagId,
     });
     const saveVideo = await newVideo.save();
     res.status(200).json({ message: saveVideo });
