@@ -10,7 +10,7 @@ import Tag from "../models/Tag.js";
 export const getVideoByID = async (req, res) => {
   try {
     const videoId = req.params.videoId;
-    const video = await Video.findOne({ video_id: videoId });
+    const video = await Video.findOne({ video_id: videoId, moderated: false });
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
@@ -25,7 +25,7 @@ export const getVideoByID = async (req, res) => {
 export const getThumbnailById = async (req, res) => {
   try {
     const videoId = req.params.videoId;
-    const video = await Video.findOne({ video_id: videoId });
+    const video = await Video.findOne({ video_id: videoId, moderated: false });
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
