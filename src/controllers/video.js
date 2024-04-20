@@ -1,14 +1,16 @@
 import { v4 as uuidv4 } from "uuid";
 import ConsumerUser from "../models/ConsumerUser.js";
+import UploaderUser from "../models/UploaderUser.js";
 import Video from "../models/Video.js";
 import Comment from "../models/Comment.js";
 import { deleteFolderFromS3 } from "../services/s3/delete.js";
 import { getSignedUrl } from "../services/s3/get.js";
+import Tag from "../models/Tag.js";
 
 export const getVideoByID = async (req, res) => {
   try {
     const videoId = req.params.videoId;
-    const video = await Video.findOne({ video_id: videoId });
+    const video = await Video.findOne({ video_id: videoId, moderated: false });
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
@@ -23,7 +25,7 @@ export const getVideoByID = async (req, res) => {
 export const getThumbnailById = async (req, res) => {
   try {
     const videoId = req.params.videoId;
-    const video = await Video.findOne({ video_id: videoId });
+    const video = await Video.findOne({ video_id: videoId, moderated: false });
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
@@ -36,16 +38,29 @@ export const getThumbnailById = async (req, res) => {
 };
 
 export const createNewVideo = async (req, res) => {
-  // Extract from token: uploaderId
   try {
+    const userId = req.body.id;
+    const user = await UploaderUser.findOne({ user_id: userId });
+    if (!user) {
+      return res.status(404).json({ message: "UploaderUser not found" });
+    }
+    user.uploadedVideos.push(req.body.videoId);
+    await user.save();
+
+    // Optional Parameter
+    const tagName = req.body.tagName;
+    let tagId = null;
+    if (tagName) {
+      const tag = await Tag.findOne({ tagName: tagName.toLowerCase() });
+      tagId = tag.tagId;
+    }
     const newVideo = new Video({
       video_id: req.body.videoId,
       title: req.body.title,
       description: req.body.description,
-      // video: `${req.body.videoPath}/video.${req.body.videoExt}`,
-      // thumbnail: `${req.body.videoPath}/thumbnail.${req.body.thumbnailExt}`,
       uploadDate: new Date(),
-      uploaderId: req.body.id,
+      uploaderId: userId,
+      tagId: tagId,
     });
     const saveVideo = await newVideo.save();
     res.status(200).json({ message: saveVideo });
