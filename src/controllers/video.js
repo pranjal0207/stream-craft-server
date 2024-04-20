@@ -6,16 +6,36 @@ import Comment from "../models/Comment.js";
 import { deleteFolderFromS3 } from "../services/s3/delete.js";
 import { getSignedUrl } from "../services/s3/get.js";
 import Tag from "../models/Tag.js";
+import ModeratorUser from "../models/ModeratorUser.js";
 
 export const getVideoByID = async (req, res) => {
+  // If token is present a video url will also be generated.
   try {
     const videoId = req.params.videoId;
-    const video = await Video.findOne({ video_id: videoId, moderated: false });
+    const userId = req.body.id;
+
+    // Checking type of user & if it is uploader user then they should be able to see moderated video
+    const moderatorTypeFlag = req.body.type === "moderator";
+    let canSeeModeratedVideoFlag = moderatorTypeFlag;
+
+    if (!moderatorTypeFlag && userId) {
+      const user = await UploaderUser.findOne({ user_id: userId });
+      if (user)
+        canSeeModeratedVideoFlag = user.uploadedVideos.includes(videoId);
+    }
+
+    const video = await Video.findOne({
+      video_id: videoId,
+      moderated: canSeeModeratedVideoFlag,
+    });
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
-    const videoPath = `${video.uploaderId}/${videoId}/video`;
-    const videoUrl = await getSignedUrl(videoPath);
+    let videoUrl = null;
+    if (userId) {
+      const videoPath = `${video.uploaderId}/${videoId}/video`;
+      videoUrl = await getSignedUrl(videoPath);
+    }
     res.status(200).json({ message: video, videoUrl: videoUrl });
   } catch (error) {
     res.status(500).json({ error: error });
@@ -25,7 +45,22 @@ export const getVideoByID = async (req, res) => {
 export const getThumbnailById = async (req, res) => {
   try {
     const videoId = req.params.videoId;
-    const video = await Video.findOne({ video_id: videoId, moderated: false });
+    const userId = req.body.id;
+
+    // Checking type of user & if it is uploader user then they should be able to see moderated video
+    const moderatorTypeFlag = req.body.type === "moderator";
+    let canSeeModeratedVideoFlag = moderatorTypeFlag;
+
+    if (!moderatorTypeFlag && userId) {
+      const user = await UploaderUser.findOne({ user_id: userId });
+      if (user)
+        canSeeModeratedVideoFlag = user.uploadedVideos.includes(videoId);
+    }
+    console.log(canSeeModeratedVideoFlag);
+    const video = await Video.findOne({
+      video_id: videoId,
+      moderated: canSeeModeratedVideoFlag,
+    });
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
@@ -74,6 +109,15 @@ export const updateTitleDescription = async (req, res) => {
     const videoId = req.params.videoId;
     let title = req.body.title;
     let description = req.body.description;
+    const userId = req.body.id;
+    const user = await UploaderUser.findOne({ user_id: userId });
+    if (!user) {
+      return res.status(404).json({ message: "UploaderUser not found" });
+    }
+    if (!user.uploadedVideos.includes(videoId))
+      return res.status(403).json({
+        message: "Video not has not been uploaded by user - UNAUTHORIZED",
+      });
     const updatedVideo = await Video.findOneAndUpdate(
       { video_id: videoId },
       { title: title, description: description },
@@ -88,6 +132,15 @@ export const updateTitleDescription = async (req, res) => {
 export const deleteVideo = async (req, res) => {
   try {
     const videoId = req.params.videoId;
+    const userId = req.body.id;
+    const user = await UploaderUser.findOne({ user_id: userId });
+    if (!user) {
+      return res.status(404).json({ message: "UploaderUser not found" });
+    }
+    if (!user.uploadedVideos.includes(videoId))
+      return res.status(403).json({
+        message: "Video not has not been uploaded by user - UNAUTHORIZED",
+      });
     const mongoStatus = await Video.deleteOne({ video_id: videoId });
     const videoFolder = `${req.body.id}/${videoId}`;
     const s3Status = await deleteFolderFromS3(videoFolder);
@@ -107,7 +160,10 @@ export const getTopVideos = async (req, res) => {
         .json({ message: "Please provide a valid positive integer for 'n'" });
     }
 
-    const topNVideos = await Video.aggregate([{ $sample: { size: n } }]);
+    const topNVideos = await Video.aggregate([
+      { $match: { moderated: false } },
+      { $sample: { size: n } },
+    ]);
 
     if (!topNVideos || topNVideos.length === 0) {
       return res.status(404).json({ message: "No top videos found" });
@@ -129,6 +185,7 @@ export const getVideoWithQuery = async (req, res) => {
 
     const videos = await Video.find({
       title: { $regex: searchQuery, $options: "i" },
+      moderated: { $ne: true },
     });
 
     if (!videos || videos.length === 0) {
@@ -277,13 +334,23 @@ export const moderateVideo = async (req, res) => {
   try {
     const videoId = req.params.videoId;
     const video = await Video.findOne({ video_id: videoId });
+
+    const userId = req.body.id;
+    const user = await ModeratorUser.findOne({ user_id: userId });
+    if (!user) {
+      return res.status(404).json({ message: "ModeratorUser not found" });
+    }
+
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
+    user.moderatedVideos.push(videoId);
+    await user.save();
 
     const moderatedFlag = video.moderated;
     video.moderated = !moderatedFlag;
-    const saveVideo = await video.save();
+    await video.save();
+
     res.status(200).json({
       message: video,
     });
