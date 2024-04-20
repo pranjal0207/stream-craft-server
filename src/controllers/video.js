@@ -8,14 +8,18 @@ import { getSignedUrl } from "../services/s3/get.js";
 import Tag from "../models/Tag.js";
 
 export const getVideoByID = async (req, res) => {
+  // If token is present a video url will also be generated.
   try {
     const videoId = req.params.videoId;
     const video = await Video.findOne({ video_id: videoId, moderated: false });
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
-    const videoPath = `${video.uploaderId}/${videoId}/video`;
-    const videoUrl = await getSignedUrl(videoPath);
+    let videoUrl = null;
+    if (req.body.id) {
+      const videoPath = `${video.uploaderId}/${videoId}/video`;
+      videoUrl = await getSignedUrl(videoPath);
+    }
     res.status(200).json({ message: video, videoUrl: videoUrl });
   } catch (error) {
     res.status(500).json({ error: error });

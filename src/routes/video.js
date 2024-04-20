@@ -14,12 +14,15 @@ import {
   moderateVideo,
 } from "../controllers/video.js";
 import { handleUploadMiddleware } from "../services/s3/upload.js";
-import { verifyToken } from "../middleware/authentication.js";
+import {
+  verifyToken,
+  verifyTokenWithContinue,
+} from "../middleware/authentication.js";
 
 const router = express.Router();
 
 // Video routes
-router.get("/getVideo/:videoId", getVideoByID);
+router.get("/getVideo/:videoId", verifyTokenWithContinue, getVideoByID);
 router.get("/getThumbnail/:videoId", getThumbnailById);
 router.post("/newVideo", verifyToken, handleUploadMiddleware, createNewVideo);
 router.put("/:videoId", verifyToken, updateTitleDescription);
