@@ -12,12 +12,27 @@ export const getVideoByID = async (req, res) => {
   // If token is present a video url will also be generated.
   try {
     const videoId = req.params.videoId;
-    const video = await Video.findOne({ video_id: videoId, moderated: false });
+    const userId = req.body.id;
+
+    // Checking type of user & if it is uploader user then they should be able to see moderated video
+    const moderatorTypeFlag = req.body.type === "moderator";
+    let canSeeModeratedVideoFlag = moderatorTypeFlag;
+
+    if (!moderatorTypeFlag && userId) {
+      const user = await UploaderUser.findOne({ user_id: userId });
+      if (user)
+        canSeeModeratedVideoFlag = user.uploadedVideos.includes(videoId);
+    }
+
+    const video = await Video.findOne({
+      video_id: videoId,
+      moderated: canSeeModeratedVideoFlag,
+    });
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
     let videoUrl = null;
-    if (req.body.id) {
+    if (userId) {
       const videoPath = `${video.uploaderId}/${videoId}/video`;
       videoUrl = await getSignedUrl(videoPath);
     }
@@ -30,7 +45,22 @@ export const getVideoByID = async (req, res) => {
 export const getThumbnailById = async (req, res) => {
   try {
     const videoId = req.params.videoId;
-    const video = await Video.findOne({ video_id: videoId, moderated: false });
+    const userId = req.body.id;
+
+    // Checking type of user & if it is uploader user then they should be able to see moderated video
+    const moderatorTypeFlag = req.body.type === "moderator";
+    let canSeeModeratedVideoFlag = moderatorTypeFlag;
+
+    if (!moderatorTypeFlag && userId) {
+      const user = await UploaderUser.findOne({ user_id: userId });
+      if (user)
+        canSeeModeratedVideoFlag = user.uploadedVideos.includes(videoId);
+    }
+    console.log(canSeeModeratedVideoFlag);
+    const video = await Video.findOne({
+      video_id: videoId,
+      moderated: canSeeModeratedVideoFlag,
+    });
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
@@ -130,7 +160,10 @@ export const getTopVideos = async (req, res) => {
         .json({ message: "Please provide a valid positive integer for 'n'" });
     }
 
-    const topNVideos = await Video.aggregate([{ $sample: { size: n } }]);
+    const topNVideos = await Video.aggregate([
+      { $match: { moderated: false } },
+      { $sample: { size: n } },
+    ]);
 
     if (!topNVideos || topNVideos.length === 0) {
       return res.status(404).json({ message: "No top videos found" });
@@ -152,6 +185,7 @@ export const getVideoWithQuery = async (req, res) => {
 
     const videos = await Video.find({
       title: { $regex: searchQuery, $options: "i" },
+      moderated: { $ne: true },
     });
 
     if (!videos || videos.length === 0) {

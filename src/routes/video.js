@@ -23,7 +23,7 @@ const router = express.Router();
 
 // Video routes
 router.get("/getVideo/:videoId", verifyTokenWithContinue, getVideoByID); // Accessed by all, otp. token for video URL
-router.get("/getThumbnail/:videoId", getThumbnailById); // Accessed by all
+router.get("/getThumbnail/:videoId", verifyTokenWithContinue, getThumbnailById); // Accessed by all, opt. token for moderated
 router.post("/newVideo", verifyToken, handleUploadMiddleware, createNewVideo); // Accessed by uploader
 router.put("/:videoId", verifyToken, updateTitleDescription); // Accessed by uploader
 router.delete("/:videoId", verifyToken, deleteVideo); // Accessed by uploader
