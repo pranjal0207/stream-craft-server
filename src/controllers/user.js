@@ -1,5 +1,6 @@
 import ConsumerUser from "../models/ConsumerUser.js";
 import UploaderUser from "../models/UploaderUser.js";
+import ModeratorUser from "../models/ModeratorUser.js";
 import bcrypt from "bcrypt";
 import Video from "../models/Video.js";
 
