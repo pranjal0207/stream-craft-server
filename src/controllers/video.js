@@ -24,10 +24,11 @@ export const getVideoByID = async (req, res) => {
         canSeeModeratedVideoFlag = user.uploadedVideos.includes(videoId);
     }
 
-    const video = await Video.findOne({
+    const findParameters = {
       video_id: videoId,
-      moderated: canSeeModeratedVideoFlag,
-    });
+    };
+    if (!canSeeModeratedVideoFlag) findParameters.moderated = false;
+    const video = await Video.findOne(findParameters);
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
@@ -63,10 +64,11 @@ export const getThumbnailById = async (req, res) => {
       if (user)
         canSeeModeratedVideoFlag = user.uploadedVideos.includes(videoId);
     }
-    const video = await Video.findOne({
+    const findParameters = {
       video_id: videoId,
-      moderated: canSeeModeratedVideoFlag,
-    });
+    };
+    if (!canSeeModeratedVideoFlag) findParameters.moderated = false;
+    const video = await Video.findOne(findParameters);
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
