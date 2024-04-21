@@ -56,7 +56,6 @@ export const getThumbnailById = async (req, res) => {
       if (user)
         canSeeModeratedVideoFlag = user.uploadedVideos.includes(videoId);
     }
-    console.log(canSeeModeratedVideoFlag);
     const video = await Video.findOne({
       video_id: videoId,
       moderated: canSeeModeratedVideoFlag,
@@ -141,9 +140,18 @@ export const deleteVideo = async (req, res) => {
       return res.status(403).json({
         message: "Video not has not been uploaded by user - UNAUTHORIZED",
       });
+
+    user.uploadedVideos = user.uploadedVideos.filter(
+      (uploaderVideoId) => uploaderVideoId !== videoId
+    );
+
+    await user.save();
+
     const mongoStatus = await Video.deleteOne({ video_id: videoId });
+
     const videoFolder = `${req.body.id}/${videoId}`;
     const s3Status = await deleteFolderFromS3(videoFolder);
+
     res.status(200).json({ s3Status: s3Status, mongoStatus: mongoStatus });
   } catch (error) {
     res.status(500).json({ error: error });
@@ -237,7 +245,6 @@ export const likeVideo = async (req, res) => {
 
     res.status(200).json({ message: "Video liked successfully", video: video });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: error });
   }
 };
@@ -278,7 +285,6 @@ export const dislikeVideo = async (req, res) => {
       .status(200)
       .json({ message: "Video disliked successfully", video: video });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: error });
   }
 };
@@ -307,7 +313,6 @@ export const addComment = async (req, res) => {
       .status(200)
       .json({ message: "Comment added successfully", comment: newComment });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: error });
   }
 };
@@ -325,7 +330,6 @@ export const getComments = async (req, res) => {
 
     res.status(200).json({ comments: comments });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: error });
   }
 };
