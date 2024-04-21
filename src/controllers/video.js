@@ -140,9 +140,18 @@ export const deleteVideo = async (req, res) => {
       return res.status(403).json({
         message: "Video not has not been uploaded by user - UNAUTHORIZED",
       });
+
+    user.uploadedVideos = user.uploadedVideos.filter(
+      (uploaderVideoId) => uploaderVideoId !== videoId
+    );
+
+    await user.save();
+
     const mongoStatus = await Video.deleteOne({ video_id: videoId });
+
     const videoFolder = `${req.body.id}/${videoId}`;
     const s3Status = await deleteFolderFromS3(videoFolder);
+
     res.status(200).json({ s3Status: s3Status, mongoStatus: mongoStatus });
   } catch (error) {
     res.status(500).json({ error: error });
