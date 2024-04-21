@@ -86,3 +86,26 @@ export const getWatchedVideos = async (req, res) => {
     return res.status(500).json({ message: "Server Error" });
   }
 };
+
+export const getModeratedVideos = async (req, res) => {
+  try {
+    const { n } = req.query;
+
+    const userId = req.params.userId;
+    const user = await ModeratorUser.findOne({ user_id: userId });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: `ModeratorUser ${userId} not found` });
+    }
+
+    const moderatedVideos = await Video.find({
+      video_id: { $in: user.moderatedVideos },
+    }).limit(parseInt(n));
+
+    return res.status(200).json({ moderatedVideos });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
