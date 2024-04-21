@@ -24,10 +24,11 @@ export const getVideoByID = async (req, res) => {
         canSeeModeratedVideoFlag = user.uploadedVideos.includes(videoId);
     }
 
-    const video = await Video.findOne({
+    const findParameters = {
       video_id: videoId,
-      moderated: canSeeModeratedVideoFlag,
-    });
+    };
+    if (!canSeeModeratedVideoFlag) findParameters.moderated = false;
+    const video = await Video.findOne(findParameters);
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
@@ -63,10 +64,11 @@ export const getThumbnailById = async (req, res) => {
       if (user)
         canSeeModeratedVideoFlag = user.uploadedVideos.includes(videoId);
     }
-    const video = await Video.findOne({
+    const findParameters = {
       video_id: videoId,
-      moderated: canSeeModeratedVideoFlag,
-    });
+    };
+    if (!canSeeModeratedVideoFlag) findParameters.moderated = false;
+    const video = await Video.findOne(findParameters);
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
@@ -168,6 +170,7 @@ export const deleteVideo = async (req, res) => {
 export const getTopVideos = async (req, res) => {
   try {
     const n = parseInt(req.query.n);
+    const tagName = req.query.tagName;
 
     if (isNaN(n) || n <= 0) {
       return res
@@ -175,14 +178,23 @@ export const getTopVideos = async (req, res) => {
         .json({ message: "Please provide a valid positive integer for 'n'" });
     }
 
-    const topNVideos = await Video.aggregate([
-      { $match: { moderated: false } },
-      { $sample: { size: n } },
-    ]);
+    let query = { moderated: false };
 
-    if (!topNVideos || topNVideos.length === 0) {
-      return res.status(404).json({ message: "No top videos found" });
+    if (tagName) {
+      const tag = await Tag.findOne({ tagName: tagName.toLowerCase() });
+      if (!tag) {
+        return res.status(404).json({ message: `Tag ${tagName} not found` });
+      }
+      query.tagId = tag.tagId;
     }
+
+    const topNVideos = await Video.find(query)
+      .sort({ uploadDate: -1 })
+      .limit(n);
+
+    // if (!topNVideos || topNVideos.length === 0) {
+    //   return res.status(404).json({ message: "No top videos found" });
+    // }
 
     res.status(200).json({ top_videos: topNVideos });
   } catch (error) {
@@ -203,11 +215,11 @@ export const getVideoWithQuery = async (req, res) => {
       moderated: { $ne: true },
     });
 
-    if (!videos || videos.length === 0) {
-      return res
-        .status(404)
-        .json({ message: `No videos found with '${searchQuery}' in title` });
-    }
+    // if (!videos || videos.length === 0) {
+    //   return res
+    //     .status(404)
+    //     .json({ message: `No videos found with '${searchQuery}' in title` });
+    // }
 
     res.status(200).json({ videos: videos });
   } catch (error) {
