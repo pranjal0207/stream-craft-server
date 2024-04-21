@@ -109,3 +109,61 @@ export const getModeratedVideos = async (req, res) => {
     return res.status(500).json({ message: "Server Error" });
   }
 };
+
+export const subscribeUser = async (req, res) => {
+  try {
+    const { uploaderId } = req.params;
+    const userId = req.body.id;
+
+    const user = await ConsumerUser.findOne({ user_id: userId });
+    if (!user) {
+      return res
+        .status(404)
+
+        .json({ message: `ConsumerUser ${userId} not found` });
+    }
+
+    const uploaderUser = await UploaderUser.findOne({ user_id: uploaderId });
+
+    if (!uploaderUser) {
+      return res
+        .status(404)
+        .json({ message: `UploaderUser ${userId} not found` });
+    }
+
+    if (user.subscriptions.includes(uploaderId)) {
+      // remove from user subscriptions
+      user.subscriptions = user.subscriptions.filter(
+        (subscribedVideoId) => subscribedVideoId !== uploaderId
+      );
+      await user.save();
+
+      // remove from uploader subscribers
+      uploaderUser.subscribers = uploaderUser.subscribers.filter(
+        (subscriberVideoId) => subscriberVideoId !== userId
+      );
+      await uploaderUser.save();
+
+      res
+        .status(200)
+        .json({
+          message: `User ${userId} unsubscribed to ${uploaderId} successfully`,
+        });
+    } else {
+      // add to user subscribtions
+      user.subscriptions.push(uploaderId);
+      await user.save();
+      // add to uploader subscribers
+      uploaderUser.subscribers.push(userId);
+      await uploaderUser.save();
+      res
+        .status(200)
+        .json({
+          message: `User ${userId} subscribed to ${uploaderId} successfully`,
+        });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
