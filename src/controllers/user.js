@@ -3,10 +3,21 @@ import UploaderUser from "../models/UploaderUser.js";
 import bcrypt from "bcrypt";
 import Video from "../models/Video.js";
 
+const getUserClass = (type) => {
+  const isUploader = type === "uploader";
+  const isModerator = type === "moderator";
+  if (isUploader) {
+    return UploaderUser;
+  } else if (isModerator) {
+    return ModeratorUser;
+  }
+  return ConsumerUser;
+};
+
 export const getUserById = async (req, res) => {
   try {
     const { type, user_id } = req.params;
-    const UserClass = type === "uploader" ? UploaderUser : ConsumerUser;
+    const UserClass = getUserClass(type);
 
     const user = await UserClass.findOne({ user_id: user_id });
 
@@ -20,7 +31,7 @@ export const updateEmailPassword = async (req, res) => {
   try {
     const { type, user_id } = req.params;
     const { email, password } = req.body;
-    const UserClass = type === "uploader" ? UploaderUser : ConsumerUser;
+    const UserClass = getUserClass(type);
 
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
