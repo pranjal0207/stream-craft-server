@@ -63,3 +63,25 @@ export const getUploaderVideos = async (req, res) => {
     res.status(500).json({ error: error });
   }
 };
+
+export const getWatchedVideos = async (req, res) => {
+  try {
+    const { n } = req.query;
+    const userId = req.params.userId;
+    const user = await ConsumerUser.findOne({ user_id: userId });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: `ConsumerUser ${userId} not found` });
+    }
+
+    const watchedVideos = await Video.find({
+      video_id: { $in: user.viewHistory },
+    }).limit(parseInt(n));
+
+    return res.status(200).json({ watchedVideos });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
