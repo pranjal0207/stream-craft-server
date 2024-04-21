@@ -35,6 +35,13 @@ export const getVideoByID = async (req, res) => {
     if (userId) {
       const videoPath = `${video.uploaderId}/${videoId}/video`;
       videoUrl = await getSignedUrl(videoPath);
+
+      // If consumer add to user viewed videos array. TODO: If uploader needs to have view history this should also update.
+      if (req.body.type == "consumer") {
+        const user = await ConsumerUser.findOne({ user_id: userId });
+        user.viewHistory.push(videoId);
+        await user.save();
+      }
     }
     res.status(200).json({ message: video, videoUrl: videoUrl });
   } catch (error) {
@@ -300,6 +307,8 @@ export const addComment = async (req, res) => {
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
+    video.comments.push(commentId);
+    await video.save();
 
     const newComment = new Comment({
       commentId: commentId,
