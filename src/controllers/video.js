@@ -300,6 +300,8 @@ export const addComment = async (req, res) => {
     if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
+    video.comments.push(commentId);
+    await video.save();
 
     const newComment = new Comment({
       commentId: commentId,
