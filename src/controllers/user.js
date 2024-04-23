@@ -30,19 +30,55 @@ export const getUserById = async (req, res) => {
 
 export const updateEmailPassword = async (req, res) => {
   try {
-    const { type, user_id } = req.params;
+    const { name, type, user_id } = req.params;
     const { email, password } = req.body;
     const UserClass = getUserClass(type);
 
-    const salt = await bcrypt.genSalt();
-    const passwordHash = await bcrypt.hash(password, salt);
-    const updatedUser = await UserClass.findOneAndUpdate(
-      { user_id: user_id },
-      { email: email, password: passwordHash },
-      { new: true }
-    );
+    const emailAvailable = email === ""? false : true;
+    const passwordAvailable = password === ""? false : true;
 
-    res.status(200).json({ user: updatedUser });
+    if (passwordAvailable && !emailAvailable) {
+      const salt = await bcrypt.genSalt();
+      const passwordHash = await bcrypt.hash(password, salt);
+
+      const updatedUser = await UserClass.findOneAndUpdate(
+        { user_id: user_id },
+        { password: passwordHash },
+        { new: true }
+      );
+
+      res.status(200).json({ user: updatedUser });
+    } else if (!passwordAvailable && emailAvailable) {
+      const updatedUser = await UserClass.findOneAndUpdate(
+        { user_id: user_id },
+        { email: email },
+        { new: true }
+      );
+
+      res.status(200).json({ user: updatedUser });
+    } else if (passwordAvailable && emailAvailable) {
+      const salt = await bcrypt.genSalt();
+      const passwordHash = await bcrypt.hash(password, salt);
+
+      const updatedUser = await UserClass.findOneAndUpdate(
+        { user_id: user_id },
+        { password: passwordHash, email:email },
+        { new: true }
+      );
+
+      res.status(200).json({ user: updatedUser });
+    } else {
+      res.status(200).json({ user: "nothing to update" });
+    }
+    
+
+    // const updatedUser = await UserClass.findOneAndUpdate(
+    //   { user_id: user_id },
+    //   { email: email, password: passwordHash },
+    //   { new: true }
+    // );
+
+    // res.status(200).json({ user: updatedUser });
   } catch (error) {
     res.status(500).json({ message: error });
   }
