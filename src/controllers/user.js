@@ -51,13 +51,27 @@ export const updateEmailPassword = async (req, res) => {
 export const getUploaderVideos = async (req, res) => {
   try {
     const userId = req.params.userId;
+    const loggedInId = req.body.id;
     const user = await UploaderUser.findOne({ user_id: userId });
     if (!user) {
       return res
         .status(404)
         .json({ message: `UploaderUser ${userId} not found` });
     }
-    const videos = await Video.find({ uploaderId: userId });
+
+    const moderatorTypeFlag = req.body.type === "moderator";
+    let canSeeModeratedVideoFlag = moderatorTypeFlag;
+
+    if (!moderatorTypeFlag && userId === loggedInId) {
+      canSeeModeratedVideoFlag = true;
+    }
+
+    const findParameters = {
+      uploaderId: userId,
+    };
+    if (!canSeeModeratedVideoFlag) findParameters.moderated = false;
+
+    const videos = await Video.find(findParameters);
 
     res.status(200).json({ uploaderId: userId, videos: videos });
   } catch (error) {
@@ -144,11 +158,9 @@ export const subscribeUser = async (req, res) => {
       );
       await uploaderUser.save();
 
-      res
-        .status(200)
-        .json({
-          message: `User ${userId} unsubscribed to ${uploaderId} successfully`,
-        });
+      res.status(200).json({
+        message: `User ${userId} unsubscribed to ${uploaderId} successfully`,
+      });
     } else {
       // add to user subscribtions
       user.subscriptions.push(uploaderId);
@@ -156,11 +168,9 @@ export const subscribeUser = async (req, res) => {
       // add to uploader subscribers
       uploaderUser.subscribers.push(userId);
       await uploaderUser.save();
-      res
-        .status(200)
-        .json({
-          message: `User ${userId} subscribed to ${uploaderId} successfully`,
-        });
+      res.status(200).json({
+        message: `User ${userId} subscribed to ${uploaderId} successfully`,
+      });
     }
   } catch (error) {
     console.error(error);
